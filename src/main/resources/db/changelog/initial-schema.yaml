@@ -1,0 +1,151 @@
+databaseChangeLog:
+  - changeSet:
+      id: 1
+      author: IvanNikolaev
+      changes:
+        - createTable:
+            tableName: address
+            columns:
+              - column:
+                  name: id
+                  type: UUID
+                  defaultValueComputed: gen_random_uuid()
+                  constraints:
+                    primaryKey: true
+                    nullable: false
+              - column:
+                  name: building
+                  type: INTEGER
+              - column:
+                  name: street
+                  type: VARCHAR(255)
+              - column:
+                  name: city
+                  type: VARCHAR(255)
+              - column:
+                  name: region
+                  type: VARCHAR(255)
+              - column:
+                  name: longitude
+                  type: DOUBLE
+              - column:
+                  name: latitude
+                  type: DOUBLE
+
+  - changeSet:
+      id: 2
+      author: IvanNikolaev
+      changes:
+        - createTable:
+            tableName: attraction
+            columns:
+              - column:
+                  name: id
+                  type: UUID
+                  defaultValueComputed: gen_random_uuid()
+                  constraints:
+                    primaryKey: true
+                    nullable: false
+              - column:
+                  name: name
+                  type: VARCHAR(255)
+              - column:
+                  name: description
+                  type: TEXT
+              - column:
+                  name: attraction_type
+                  type: VARCHAR(50)
+              - column:
+                  name: address_id
+                  type: UUID
+                  constraints:
+                    nullable: false
+                    foreignKeyName: fk_attraction_address
+                    references: address(id)
+
+  - changeSet:
+      id: 3
+      author: IvanNikolaev
+      changes:
+        - createTable:
+            tableName: services
+            columns:
+              - column:
+                  name: service_id
+                  type: UUID
+                  defaultValueComputed: gen_random_uuid()
+                  constraints:
+                    primaryKey: true
+                    nullable: false
+              - column:
+                  name: name
+                  type: VARCHAR(255)
+              - column:
+                  name: description
+                  type: TEXT
+              - column:
+                  name: service_type
+                  type: VARCHAR(50)
+              - column:
+                  name: price
+                  type: DECIMAL(10,2)
+              - column:
+                  name: currency
+                  type: VARCHAR(3)
+              - column:
+                  name: availability
+                  type: BOOLEAN
+                  defaultValueBoolean: true
+
+  - changeSet:
+      id: 4
+      author: IvanNikolaev
+      changes:
+        - createTable:
+            tableName: attraction_service
+            columns:
+              - column:
+                  name: attraction_id
+                  type: UUID
+                  constraints:
+                    nullable: false
+                    foreignKeyName: fk_attraction_service_attraction
+                    references: attraction(id)
+              - column:
+                  name: service_id
+                  type: UUID
+                  constraints:
+                    nullable: false
+                    foreignKeyName: fk_attraction_service_service
+                    references: services(service_id)
+
+  - changeSet:
+      id: 5
+      author: IvanNikolaev
+      changes:
+        - createTable:
+            tableName: ticket_info
+            columns:
+              - column:
+                  name: id
+                  type: UUID
+                  defaultValueComputed: gen_random_uuid()
+                  constraints:
+                    primaryKey: true
+                    nullable: false
+              - column:
+                  name: price
+                  type: DECIMAL(10, 2)
+              - column:
+                  name: currency
+                  type: VARCHAR(3)
+              - column:
+                  name: availability
+                  type: BOOLEAN
+              - column:
+                  name: attraction_id
+                  type: UUID
+                  constraints:
+                    nullable: false
+                    foreignKeyName: fk_ticket_info_attraction
+                    references: attraction(id)
