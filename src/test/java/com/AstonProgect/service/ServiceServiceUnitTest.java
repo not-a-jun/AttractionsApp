@@ -1,6 +1,7 @@
 package com.AstonProgect.service;
 
 import com.AstonProgect.dto.ServiceDto;
+import com.AstonProgect.exception.ResourceNotFoundException;
 import com.AstonProgect.mapper.ServiceMapper;
 import com.AstonProgect.model.Service;
 import com.AstonProgect.model.ServiceType;
@@ -18,9 +19,13 @@ import org.springframework.data.domain.Pageable;
 
 import java.math.BigDecimal;
 import java.util.List;
+import java.util.Optional;
 import java.util.UUID;
 
 import static org.junit.jupiter.api.Assertions.*;
+import static org.mockito.ArgumentMatchers.any;
+import static org.mockito.ArgumentMatchers.eq;
+import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 
 @ExtendWith(MockitoExtension.class)
@@ -79,6 +84,77 @@ public class ServiceServiceUnitTest {
         when(serviceMapper.toDto(service)).thenReturn(serviceDto);
 
         Page<ServiceDto> result = serviceService.getServicesByType(ServiceType.GUIDE, pageable);
+
+        assertEquals(1, result.getTotalElements());
+    }
+
+    @Test
+    void getAllServices_ShouldReturnAll() {
+        Pageable pageable = PageRequest.of(0, 10);
+        Page<Service> page = new PageImpl<>(List.of(service));
+
+        when(serviceRepository.findAll(pageable)).thenReturn(page);
+        when(serviceMapper.toDto(service)).thenReturn(serviceDto);
+
+        Page<ServiceDto> result = serviceService.getAllServices(pageable);
+
+        assertEquals(1, result.getTotalElements());
+    }
+
+    @Test
+    void updateService_ShouldUpdateFields() {
+        ServiceDto updateDto = new ServiceDto();
+        updateDto.setName("Updated Name");
+        updateDto.setDescription("Updated Desc");
+        updateDto.setServiceType(ServiceType.FOOD);
+
+        when(serviceRepository.findById(testId)).thenReturn(Optional.of(service));
+        when(serviceRepository.save(service)).thenReturn(service);
+        when(serviceMapper.toDto(service)).thenReturn(updateDto);
+
+        ServiceDto result = serviceService.updateService(testId, updateDto);
+
+        assertEquals("Updated Name", result.getName());
+        assertEquals(ServiceType.FOOD, result.getServiceType());
+    }
+
+    @Test
+    void getServiceById_ShouldReturnService() {
+        when(serviceRepository.findById(testId)).thenReturn(Optional.of(service));
+        when(serviceMapper.toDto(service)).thenReturn(serviceDto);
+
+        ServiceDto result = serviceService.getServiceById(testId);
+
+        assertEquals(serviceDto, result);
+    }
+
+    @Test
+    void deleteService_ShouldSuccess() {
+        when(serviceRepository.existsById(testId)).thenReturn(true);
+
+        serviceService.deleteService(testId);
+
+        verify(serviceRepository).deleteById(testId);
+    }
+
+    @Test
+    void deleteService_ShouldThrowWhenNotFound() {
+        when(serviceRepository.existsById(testId)).thenReturn(false);
+
+        assertThrows(ResourceNotFoundException.class,
+                () -> serviceService.deleteService(testId));
+    }
+
+    @Test
+    void searchServices_ShouldReturnFiltered() {
+        Pageable pageable = PageRequest.of(0, 10);
+        Page<Service> page = new PageImpl<>(List.of(service));
+
+        when(serviceRepository.searchServices(any(), any(), eq(pageable)))
+                .thenReturn(page);
+        when(serviceMapper.toDto(service)).thenReturn(serviceDto);
+
+        Page<ServiceDto> result = serviceService.searchServices("test", ServiceType.GUIDE, pageable);
 
         assertEquals(1, result.getTotalElements());
     }

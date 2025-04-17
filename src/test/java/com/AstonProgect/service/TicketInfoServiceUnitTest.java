@@ -1,6 +1,7 @@
 package com.AstonProgect.service;
 
 import com.AstonProgect.dto.TicketInfoDto;
+import com.AstonProgect.exception.ResourceNotFoundException;
 import com.AstonProgect.mapper.TicketInfoMapper;
 import com.AstonProgect.model.TicketInfo;
 import com.AstonProgect.repository.AttractionRepository;
@@ -18,6 +19,7 @@ import org.springframework.data.domain.Pageable;
 
 import java.math.BigDecimal;
 import java.util.List;
+import java.util.Optional;
 import java.util.UUID;
 
 import static org.junit.jupiter.api.Assertions.*;
@@ -73,6 +75,23 @@ public class TicketInfoServiceUnitTest {
     }
 
     @Test
+    void createTicketInfo_ShouldThrowWhenAttractionNotFound() {
+        when(attractionRepository.existsById(any())).thenReturn(false);
+
+        assertThrows(ResourceNotFoundException.class,
+                () -> ticketInfoService.createTicketInfo(ticketInfoDto));
+    }
+
+    @Test
+    void createTicketInfo_ShouldThrowWhenTicketExists() {
+        when(attractionRepository.existsById(any())).thenReturn(true);
+        when(ticketInfoRepository.existsByAttraction_Id(any())).thenReturn(true);
+
+        assertThrows(IllegalStateException.class,
+                () -> ticketInfoService.createTicketInfo(ticketInfoDto));
+    }
+
+    @Test
     void getByAttractionId_ShouldReturnTicketInfo() {
         Pageable pageable = PageRequest.of(0, 10);
         Page<TicketInfo> page = new PageImpl<>(List.of(ticketInfo));
@@ -84,6 +103,60 @@ public class TicketInfoServiceUnitTest {
         Page<TicketInfoDto> result = ticketInfoService.getByAttractionId(testId, pageable);
 
         assertEquals(1, result.getTotalElements());
+    }
+
+    @Test
+    void updateTicketInfo_ShouldUpdateFields() {
+        TicketInfoDto updateDto = new TicketInfoDto();
+        updateDto.setPrice(BigDecimal.valueOf(200));
+        updateDto.setCurrency("EUR");
+
+        when(ticketInfoRepository.findById(testId)).thenReturn(Optional.of(ticketInfo));
+        when(ticketInfoRepository.save(ticketInfo)).thenReturn(ticketInfo);
+        when(ticketInfoMapper.toDto(ticketInfo)).thenReturn(updateDto);
+
+        TicketInfoDto result = ticketInfoService.updateTicketInfo(testId, updateDto);
+
+        assertEquals(BigDecimal.valueOf(200), result.getPrice());
+        assertEquals("EUR", result.getCurrency());
+    }
+
+    @Test
+    void getTicketInfoById_ShouldReturnTicketInfo() {
+        when(ticketInfoRepository.findById(testId)).thenReturn(Optional.of(ticketInfo));
+        when(ticketInfoMapper.toDto(ticketInfo)).thenReturn(ticketInfoDto);
+
+        TicketInfoDto result = ticketInfoService.getTicketInfoById(testId);
+
+        assertEquals(ticketInfoDto, result);
+    }
+
+    @Test
+    void deleteTicketInfo_ShouldSuccess() {
+        when(ticketInfoRepository.existsById(testId)).thenReturn(true);
+
+        ticketInfoService.deleteTicketInfo(testId);
+
+        verify(ticketInfoRepository).deleteById(testId);
+    }
+
+    @Test
+    void deleteTicketInfo_ShouldThrowWhenNotFound() {
+        when(ticketInfoRepository.existsById(testId)).thenReturn(false);
+
+        assertThrows(ResourceNotFoundException.class,
+                () -> ticketInfoService.deleteTicketInfo(testId));
+    }
+
+    @Test
+    void getByAttraction_ShouldReturnTicketInfo() {
+        when(ticketInfoRepository.findByAttraction_Id(testId))
+                .thenReturn(Optional.of(ticketInfo));
+        when(ticketInfoMapper.toDto(ticketInfo)).thenReturn(ticketInfoDto);
+
+        TicketInfoDto result = ticketInfoService.getByAttraction(testId);
+
+        assertEquals(ticketInfoDto, result);
     }
 }
 

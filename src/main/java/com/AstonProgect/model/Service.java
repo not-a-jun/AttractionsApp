@@ -3,6 +3,7 @@ package com.AstonProgect.model;
 import jakarta.persistence.*;
 import jakarta.validation.constraints.NotBlank;
 import jakarta.validation.constraints.NotNull;
+import jakarta.validation.constraints.Size;
 import lombok.Data;
 
 import java.math.BigDecimal;
@@ -46,6 +47,7 @@ public class Service {
     @Column(precision = 10, scale = 2)
     private BigDecimal price;
 
+    @Size(min = 3, max = 3, message = "Currency must be exactly 3 characters")
     @Column(length = 3)
     private String currency;
 

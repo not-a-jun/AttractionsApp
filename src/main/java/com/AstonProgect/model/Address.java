@@ -1,8 +1,7 @@
 package com.AstonProgect.model;
 
 import jakarta.persistence.*;
-import jakarta.validation.constraints.NotBlank;
-import jakarta.validation.constraints.NotNull;
+import jakarta.validation.constraints.*;
 import lombok.Data;
 import java.util.List;
 import java.util.UUID;
@@ -26,6 +25,7 @@ public class Address {
     @GeneratedValue(strategy = GenerationType.AUTO)
     private UUID id;
 
+    @Positive(message = "Building number must be positive")
     @NotNull(message = "Building cannot be null")
     private Integer building;
 
@@ -38,9 +38,13 @@ public class Address {
     @NotBlank(message = "Region cannot be blank")
     private String region;
 
+    @Min(value = -180, message = "Longitude must be between -180 and 180")
+    @Max(value = 180, message = "Longitude must be between -180 and 180")
     @Column(nullable = true)
     private Double longitude;
 
+    @Min(value = -90, message = "Latitude must be between -90 and 90")
+    @Max(value = 90, message = "Latitude must be between -90 and 90")
     @Column(nullable = true)
     private Double latitude;
 

@@ -5,6 +5,7 @@ import com.AstonProgect.exception.ResourceNotFoundException;
 import com.AstonProgect.mapper.AttractionMapper;
 import com.AstonProgect.model.Attraction;
 import com.AstonProgect.model.AttractionType;
+import com.AstonProgect.model.Service;
 import com.AstonProgect.repository.AddressRepository;
 import com.AstonProgect.repository.AttractionRepository;
 import com.AstonProgect.repository.ServiceRepository;
@@ -96,6 +97,16 @@ public class AttractionServiceUnitTest {
                 () -> attractionService.createAttraction(attractionDto));
     }
 
+    @Test
+    void createAttraction_ShouldThrowWhenServiceNotFound() {
+        when(addressRepository.existsById(any())).thenReturn(true);
+        when(ticketInfoRepository.existsById(any())).thenReturn(true);
+        when(serviceRepository.existsById(any())).thenReturn(false);
+
+        assertThrows(ResourceNotFoundException.class,
+                () -> attractionService.createAttraction(attractionDto));
+    }
+
     // READ TESTS
     @Test
     void getAttractionById_ShouldReturnAttraction() {
@@ -105,6 +116,20 @@ public class AttractionServiceUnitTest {
         AttractionDto result = attractionService.getAttractionById(testId);
 
         assertEquals(attractionDto, result);
+    }
+
+    @Test
+    void getAttractionsByServiceId_ShouldReturnFiltered() {
+        Pageable pageable = PageRequest.of(0, 10);
+        Page<Attraction> page = new PageImpl<>(List.of(attraction));
+
+        when(serviceRepository.existsById(testId)).thenReturn(true);
+        when(attractionRepository.findByServiceId(testId, pageable)).thenReturn(page);
+        when(attractionMapper.toDto(attraction)).thenReturn(attractionDto);
+
+        Page<AttractionDto> result = attractionService.getAttractionsByServiceId(testId, pageable);
+
+        assertEquals(1, result.getTotalElements());
     }
 
     @Test
@@ -146,6 +171,24 @@ public class AttractionServiceUnitTest {
         assertEquals("Updated Name", result.getName());
         assertEquals("Updated Desc", result.getDescription());
         assertEquals(AttractionType.PARK, result.getAttractionType());
+    }
+
+    @Test
+    void updateAttraction_ShouldUpdateServices() {
+        UUID newServiceId = UUID.randomUUID();
+        Service newService = new Service();
+        newService.setId(newServiceId);
+
+        AttractionDto updateDto = new AttractionDto();
+        updateDto.setServiceIds(Set.of(newServiceId));
+
+        when(serviceRepository.findById(newServiceId)).thenReturn(Optional.of(newService));
+        when(attractionRepository.findById(testId)).thenReturn(Optional.of(attraction));
+
+        attractionService.updateAttraction(testId, updateDto);
+
+        assertEquals(1, attraction.getServices().size());
+        assertTrue(attraction.getServices().contains(newService));
     }
 
     @Test

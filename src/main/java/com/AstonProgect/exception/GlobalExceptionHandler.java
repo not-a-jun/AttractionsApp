@@ -1,45 +1,21 @@
 package com.AstonProgect.exception;
 
+import jakarta.validation.ConstraintViolationException;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
+import org.springframework.http.converter.HttpMessageNotReadableException;
 import org.springframework.web.bind.MethodArgumentNotValidException;
 import org.springframework.web.bind.annotation.ControllerAdvice;
 import org.springframework.web.bind.annotation.ExceptionHandler;
 import org.springframework.web.context.request.WebRequest;
+import org.springframework.dao.DataIntegrityViolationException;
 
 import java.time.LocalDateTime;
 import java.util.stream.Collectors;
 
-/**
- * Глобальный обработчик исключений для всего приложения.
- * <p>
- * Этот класс централизованно обрабатывает различные типы исключений, возникающие в приложении,
- * и преобразует их в структурированные HTTP-ответы с соответствующими кодами статуса.
- * Это позволяет клиентам получать понятные сообщения об ошибках.
- * <p>
- * Обрабатываемые типы исключений:
- * <ul>
- *   <li>ResourceNotFoundException - когда запрашиваемый ресурс не найден</li>
- *   <li>ConstraintViolationException - при нарушении ограничений валидации</li>
- *   <li>MethodArgumentNotValidException - при ошибках валидации аргументов метода</li>
- *   <li>DataIntegrityViolationException - при нарушении целостности данных</li>
- *   <li>HttpMessageNotReadableException - при проблемах с разбором JSON-запроса</li>
- *   <li>Exception - для всех других непредвиденных исключений</li>
- * </ul>
- */
 @ControllerAdvice
 public class GlobalExceptionHandler {
 
-    /**
-     * Обрабатывает исключение ResourceNotFoundException.
-     * <p>
-     * Возникает, когда запрашиваемый ресурс не найден в системе.
-     * Возвращает статус 404 Not Found.
-     *
-     * @param ex исключение ResourceNotFoundException
-     * @param request текущий веб-запрос
-     * @return ResponseEntity с информацией об ошибке и статусом 404
-     */
     @ExceptionHandler(ResourceNotFoundException.class)
     public ResponseEntity<ErrorResponse> handleNotFound(ResourceNotFoundException ex, WebRequest request) {
         return buildErrorResponse(ex, HttpStatus.NOT_FOUND, request);
@@ -51,6 +27,29 @@ public class GlobalExceptionHandler {
                 .map(error -> error.getField() + ": " + error.getDefaultMessage())
                 .collect(Collectors.joining("; "));
         return buildErrorResponse(new Exception(message), HttpStatus.BAD_REQUEST, request);
+    }
+
+    @ExceptionHandler(ConstraintViolationException.class)
+    public ResponseEntity<ErrorResponse> handleConstraintViolation(ConstraintViolationException ex, WebRequest request) {
+        String message = !ex.getConstraintViolations().isEmpty() ? ex.getConstraintViolations().stream()
+                        .map(v -> v.getPropertyPath() + ": " + v.getMessage())
+                        .collect(Collectors.joining("; ")) : ex.getMessage();
+        return buildErrorResponse(new Exception(message), HttpStatus.BAD_REQUEST, request);
+    }
+
+    @ExceptionHandler(DataIntegrityViolationException.class)
+    public ResponseEntity<ErrorResponse> handleDataIntegrityViolation(DataIntegrityViolationException ex, WebRequest request) {
+        return buildErrorResponse(ex, HttpStatus.CONFLICT, request);
+    }
+
+    @ExceptionHandler(HttpMessageNotReadableException.class)
+    public ResponseEntity<ErrorResponse> handleHttpMessageNotReadable(HttpMessageNotReadableException ex, WebRequest request) {
+        return buildErrorResponse(ex, HttpStatus.BAD_REQUEST, request);
+    }
+
+    @ExceptionHandler(Exception.class)
+    public ResponseEntity<ErrorResponse> handleAllExceptions(Exception ex, WebRequest request) {
+        return buildErrorResponse(ex, HttpStatus.INTERNAL_SERVER_ERROR, request);
     }
 
     private ResponseEntity<ErrorResponse> buildErrorResponse(Exception ex, HttpStatus status, WebRequest request) {

@@ -2,8 +2,10 @@ package com.AstonProgect.model;
 
 import com.fasterxml.jackson.annotation.JsonManagedReference;
 import jakarta.persistence.*;
+import jakarta.validation.Valid;
 import jakarta.validation.constraints.NotBlank;
 import jakarta.validation.constraints.NotNull;
+import jakarta.validation.constraints.Size;
 import lombok.Data;
 import java.util.Set;
 import java.util.UUID;
@@ -33,6 +35,7 @@ public class Attraction {
     @Column(nullable = false)
     private String name;
 
+    @Size(max = 1000, message = "Description must be less than 1000 characters")
     @NotBlank(message = "Description cannot be blank")
     @Column(nullable = false, columnDefinition = "TEXT")
     private String description;
@@ -42,6 +45,8 @@ public class Attraction {
     @Column(nullable = false)
     private AttractionType attractionType;
 
+    @Valid
+    @NotNull(message = "Address cannot be null")
     @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "address_id",nullable = false)
     private Address address;

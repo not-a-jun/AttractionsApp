@@ -117,14 +117,5 @@ public abstract class AttractionMapper {
         if (attraction.getTicketInfo() != null) {
             attraction.getTicketInfo().setAttraction(attraction);
         }
-
-        // Устанавливаем обратные ссылки для услуг
-        if (attraction.getServices() != null) {
-            attraction.getServices().forEach(service -> {
-                if (service.getAttractions() == null || !service.getAttractions().contains(attraction)) {
-                    service.getAttractions().add(attraction);
-                }
-            });
-        }
     }
 }
