@@ -15,7 +15,12 @@ import java.util.UUID;
 /**
  * Репозиторий для работы с сущностью {@link Attraction}.
  * <p>
- * Предоставляет стандартные CRUD операции JPA и дополнительные методы поиска достопримечательностей.
+ * Обеспечивает:
+ * <ul>
+ *   <li>Базовые операции CRUD</li>
+ *   <li>Поиск по различным критериям</li>
+ *   <li>Загрузку связанных сущностей</li>
+ * </ul>
  */
 @Repository
 public interface AttractionRepository extends JpaRepository<Attraction, UUID> {
@@ -33,8 +38,14 @@ public interface AttractionRepository extends JpaRepository<Attraction, UUID> {
     Page<Attraction> findByAddress_Region(String region, Pageable pageable);
 
     /**
-     * Комплексный поиск достопримечательностей.
-     * Поддерживает фильтрацию по названию, типу и городу.
+     * Выполняет комплексный поиск достопримечательностей.
+     * <p>
+     * Поддерживает:
+     * <ul>
+     *   <li>Частичный поиск по названию</li>
+     *   <li>Фильтрацию по типу</li>
+     *   <li>Поиск по городу через связанный адрес</li>
+     * </ul>
      *
      * @param name часть названия (может быть null)
      * @param type тип достопримечательности (может быть null)
@@ -53,15 +64,21 @@ public interface AttractionRepository extends JpaRepository<Attraction, UUID> {
             Pageable pageable);
 
     /**
-     * Поиск достопримечательностей по ID связанной услуги.
+     * Ищет достопримечательности по ID связанной услуги.
      *
      * @param serviceId ID услуги
      * @param pageable параметры пагинации
-     * @return страница с найденными достопримечательностями
+     * @return страница с достопримечательностями, предоставляющими указанную услугу
      */
     @Query("SELECT a FROM Attraction a JOIN a.services s WHERE s.id = :serviceId")
     Page<Attraction> findByServiceId(@Param("serviceId") UUID serviceId, Pageable pageable);
 
+    /**
+     * Находит достопримечательность по ID с загруженным адресом.
+     *
+     * @param id ID достопримечательности
+     * @return Optional с достопримечательностью и адресом
+     */
     @Query("SELECT a FROM Attraction a JOIN FETCH a.address WHERE a.id = :id")
     Optional<Attraction> findWithAddressById(@Param("id") UUID id);
 }

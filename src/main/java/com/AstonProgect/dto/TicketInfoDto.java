@@ -9,6 +9,11 @@ import lombok.Data;
 import java.math.BigDecimal;
 import java.util.UUID;
 
+/**
+ * DTO для представления информации о билетах.
+ * <p>
+ * Содержит данные о цене, валюте, доступности билетов и привязке к достопримечательности.
+ */
 @Data
 public class TicketInfoDto {
     private UUID id;

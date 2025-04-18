@@ -94,8 +94,17 @@ public class AttractionController {
         return ResponseEntity.ok(attractionService.getAllAttractions(pageable));
     }
 
+    /**
+     * Ищет достопримечательности по заданным критериям.
+     *
+     * @param name Название достопримечательности (опционально).
+     * @param type Тип достопримечательности (опционально).
+     * @param city Город, где находится достопримечательность (опционально).
+     * @param pageable Параметры пагинации.
+     * @return Страница с DTO найденных достопримечательностей.
+     */
     @GetMapping("/search")
-    @Operation(summary = "Поиск достопримечательностей")
+    @Operation(summary = "Поиск достопримечательностей", description = "Фильтрует достопримечательности по названию, типу или городу")
     @ApiResponse(responseCode = "200", description = "Результаты поиска")
     public ResponseEntity<Page<AttractionDto>> searchAttractions(
             @RequestParam(required = false) String name,

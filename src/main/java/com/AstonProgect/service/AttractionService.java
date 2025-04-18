@@ -20,18 +20,15 @@ import java.util.UUID;
 
 
 /**
- * Сервис для управления достопримечательностями (Attractions).
+ * Сервис для управления достопримечательностями.
  * <p>
- * Этот сервис обеспечивает бизнес-логику для операций с достопримечательностями, включая:
+ * Обеспечивает полный жизненный цикл работы с достопримечательностями:
  * <ul>
- *   <li>Создание новых достопримечательностей</li>
- *   <li>Получение информации о достопримечательностях</li>
- *   <li>Обновление существующих достопримечательностей</li>
- *   <li>Удаление достопримечательностей</li>
- *   <li>Поиск достопримечательностей по различным критериям</li>
+ *   <li>Создание с проверкой связанных сущностей</li>
+ *   <li>Чтение с различными вариантами фильтрации</li>
+ *   <li>Частичное и полное обновление</li>
+ *   <li>Удаление с проверкой существования</li>
  * </ul>
- * <p>
- * Все операции выполняются в транзакциях и имеют логирование для отслеживания действий.
  */
 @org.springframework.stereotype.Service
 @Transactional
@@ -45,6 +42,13 @@ public class AttractionService {
     private final TicketInfoRepository ticketInfoRepository;
     private final AttractionMapper attractionMapper;
 
+    /**
+     * Создает новую достопримечательность.
+     *
+     * @param attractionDto DTO с данными для создания
+     * @return DTO созданной достопримечательности
+     * @throws ResourceNotFoundException если связанные сущности не найдены
+     */
     @Transactional
     public AttractionDto createAttraction(AttractionDto attractionDto) {
         log.info("Creating attraction: {}", attractionDto.getName());
@@ -71,6 +75,13 @@ public class AttractionService {
         return attractionMapper.toDto(savedAttraction);
     }
 
+    /**
+     * Получает достопримечательность по ID.
+     *
+     * @param id UUID достопримечательности
+     * @return DTO достопримечательности
+     * @throws ResourceNotFoundException если достопримечательность не найдена
+     */
     @Transactional(readOnly = true)
     public AttractionDto getAttractionById(UUID id) {
         log.debug("Fetching attraction with id: {}", id);
@@ -79,6 +90,12 @@ public class AttractionService {
                 .orElseThrow(() -> new ResourceNotFoundException("Attraction not found with id: " + id));
     }
 
+    /**
+     * Получает все достопримечательности с пагинацией.
+     *
+     * @param pageable параметры пагинации
+     * @return страница с DTO достопримечательностей
+     */
     @Transactional(readOnly = true)
     public Page<AttractionDto> getAllAttractions(Pageable pageable) {
         log.info("Fetching all attractions with pagination");
@@ -86,6 +103,14 @@ public class AttractionService {
                 .map(attractionMapper::toDto);
     }
 
+    /**
+     * Обновляет существующую достопримечательность.
+     *
+     * @param id UUID обновляемой достопримечательности
+     * @param attractionDto DTO с новыми данными
+     * @return DTO обновленной достопримечательности
+     * @throws ResourceNotFoundException если достопримечательность или связанные сущности не найдены
+     */
     @Transactional
     public AttractionDto updateAttraction(UUID id, AttractionDto attractionDto) {
         log.info("Updating attraction with id: {}", id);
@@ -133,6 +158,12 @@ public class AttractionService {
         return attractionMapper.toDto(updatedAttraction);
     }
 
+    /**
+     * Удаляет достопримечательность по ID.
+     *
+     * @param id UUID удаляемой достопримечательности
+     * @throws ResourceNotFoundException если достопримечательность не найдена
+     */
     @Transactional
     public void deleteAttraction(UUID id) {
         log.info("Deleting attraction with id: {}", id);
@@ -142,6 +173,15 @@ public class AttractionService {
         attractionRepository.deleteById(id);
     }
 
+    /**
+     * Ищет достопримечательности по различным критериям.
+     *
+     * @param name часть названия (регистронезависимый поиск)
+     * @param type тип достопримечательности
+     * @param city город расположения
+     * @param pageable параметры пагинации
+     * @return страница с найденными достопримечательностями
+     */
     @Transactional(readOnly = true)
     public Page<AttractionDto> searchAttractions(String name, AttractionType type, String city, Pageable pageable) {
         log.info("Searching attractions with name={}, type={}, city={}", name, type, city);
@@ -149,6 +189,14 @@ public class AttractionService {
                 .map(attractionMapper::toDto);
     }
 
+    /**
+     * Получает достопримечательности, связанные с указанной услугой.
+     *
+     * @param serviceId UUID услуги
+     * @param pageable параметры пагинации
+     * @return страница с DTO достопримечательностей
+     * @throws ResourceNotFoundException если услуга не найдена
+     */
     @Transactional(readOnly = true)
     public Page<AttractionDto> getAttractionsByServiceId(UUID serviceId, Pageable pageable) {
         log.info("Fetching attractions by service id: {}", serviceId);

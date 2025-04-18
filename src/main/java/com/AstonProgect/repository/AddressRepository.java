@@ -13,7 +13,12 @@ import java.util.UUID;
 /**
  * Репозиторий для работы с сущностью {@link Address}.
  * <p>
- * Предоставляет стандартные CRUD операции JPA и дополнительные методы поиска адресов.
+ * Предоставляет:
+ * <ul>
+ *   <li>Стандартные CRUD-операции через JpaRepository</li>
+ *   <li>Специализированные методы поиска с поддержкой пагинации</li>
+ *   <li>Комплексные запросы с фильтрацией по нескольким параметрам</li>
+ * </ul>
  */
 @Repository
 public interface AddressRepository extends JpaRepository<Address, UUID> {
@@ -31,8 +36,14 @@ public interface AddressRepository extends JpaRepository<Address, UUID> {
     Page<Address> findByLongitudeIsNotNullAndLatitudeIsNotNull(Pageable pageable);
 
     /**
-     * Комплексный поиск адресов по нескольким параметрам.
-     * Поддерживает частичное совпадение и регистронезависимый поиск.
+     * Выполняет комплексный поиск адресов по нескольким параметрам.
+     * <p>
+     * Особенности:
+     * <ul>
+     *   <li>Поддерживает частичное совпадение (LIKE)</li>
+     *   <li>Регистронезависимый поиск</li>
+     *   <li>Параметры могут быть null (игнорируются в запросе)</li>
+     * </ul>
      *
      * @param city название города (может быть null)
      * @param region название региона (может быть null)

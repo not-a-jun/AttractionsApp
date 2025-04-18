@@ -5,10 +5,14 @@ import com.AstonProgect.model.Service;
 import org.mapstruct.*;
 
 /**
- * Маппер для преобразования между сущностью Service и DTO ServiceDto.
+ * Маппер для преобразования между сущностью {@link Service} и DTO {@link ServiceDto}.
  * <p>
- * Предоставляет методы для конвертации объектов из одного представления в другое,
- * с явным указанием соответствия полей сущности и DTO.
+ * Настройки:
+ * <ul>
+ *   <li>Игнорирует несопоставленные поля</li>
+ *   <li>Игнорирует поле attractions при преобразовании DTO → Entity</li>
+ *   <li>Не обновляет null-значения при частичном обновлении</li>
+ * </ul>
  */
 @Mapper(componentModel = "spring",
         unmappedTargetPolicy = ReportingPolicy.IGNORE)

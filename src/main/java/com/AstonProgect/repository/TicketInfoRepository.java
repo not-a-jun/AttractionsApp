@@ -15,7 +15,12 @@ import java.util.UUID;
 /**
  * Репозиторий для работы с сущностью {@link TicketInfo}.
  * <p>
- * Предоставляет стандартные CRUD операции JPA и дополнительные методы поиска информации о билетах.
+ * Обеспечивает:
+ * <ul>
+ *   <li>Базовые операции CRUD</li>
+ *   <li>Поиск по различным параметрам билетов</li>
+ *   <li>Аналитические запросы (минимальная/максимальная цена)</li>
+ * </ul>
  */
 @Repository
 public interface TicketInfoRepository extends JpaRepository<TicketInfo, UUID> {
@@ -36,26 +41,33 @@ public interface TicketInfoRepository extends JpaRepository<TicketInfo, UUID> {
     Page<TicketInfo> findByAttraction_Id(UUID attractionId, Pageable pageable);
 
     /**
-     * Проверка существования информации о билетах для достопримечательности.
+     * Проверяет существование информации о билетах для достопримечательности.
      *
      * @param attractionId ID достопримечательности
-     * @return true если информация существует, иначе false
+     * @return true если информация существует, false в противном случае
      */
     @Query("SELECT CASE WHEN COUNT(t) > 0 THEN true ELSE false END " +
             "FROM TicketInfo t WHERE t.attraction.id = :attractionId")
     boolean existsByAttraction_Id(@Param("attractionId") UUID attractionId);
 
     /**
-     * Поиск информации о билетах по ID достопримечательности.
+     * Находит информацию о билетах по ID достопримечательности.
      *
      * @param attractionId ID достопримечательности
-     * @return Optional с найденной информацией о билетах
+     * @return Optional с информацией о билетах
      */
     @Query("SELECT t FROM TicketInfo t WHERE t.attraction.id = :attractionId")
     Optional<TicketInfo> findByAttraction_Id(@Param("attractionId") UUID attractionId);
 
     /**
-     * Комплексный поиск информации о билетах.
+     * Выполняет комплексный поиск информации о билетах.
+     * <p>
+     * Поддерживает фильтрацию по:
+     * <ul>
+     *   <li>Валюте</li>
+     *   <li>Доступности</li>
+     *   <li>Ценовому диапазону</li>
+     * </ul>
      *
      * @param currency валюта (может быть null)
      * @param available флаг доступности (может быть null)
@@ -77,19 +89,19 @@ public interface TicketInfoRepository extends JpaRepository<TicketInfo, UUID> {
             Pageable pageable);
 
     /**
-     * Поиск минимальной цены для указанной валюты.
+     * Находит минимальную цену для указанной валюты.
      *
-     * @param currency валюта
-     * @return минимальная цена
+     * @param currency валюта (3-символьный код)
+     * @return минимальная цена или null если нет билетов в этой валюте
      */
     @Query("SELECT MIN(t.price) FROM TicketInfo t WHERE t.currency = :currency")
     BigDecimal findMinPriceByCurrency(@Param("currency") String currency);
 
     /**
-     * Поиск максимальной цены для указанной валюты.
+     * Находит максимальную цену для указанной валюты.
      *
-     * @param currency валюта
-     * @return максимальная цена
+     * @param currency валюта (3-символьный код)
+     * @return максимальная цена или null если нет билетов в этой валюте
      */
     @Query("SELECT MAX(t.price) FROM TicketInfo t WHERE t.currency = :currency")
     BigDecimal findMaxPriceByCurrency(@Param("currency") String currency);

@@ -6,6 +6,12 @@ import jakarta.validation.constraints.Positive;
 import lombok.Data;
 import java.util.UUID;
 
+/**
+ * DTO для представления адреса.
+ * <p>
+ * Содержит информацию о местоположении, включая город, улицу, здание и географические координаты.
+ * Все поля, кроме идентификатора, обязательны для заполнения.
+ */
 @Data
 public class AddressDto {
     private UUID id;

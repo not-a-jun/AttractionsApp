@@ -18,8 +18,13 @@ import java.util.UUID;
 /**
  * Сервис для управления информацией о билетах.
  * <p>
- * Предоставляет методы для выполнения бизнес-логики, связанной с информацией о билетах:
- * создание, получение, обновление, удаление и поиск по различным критериям.
+ * Обеспечивает:
+ * <ul>
+ *   <li>Создание с проверкой связанных сущностей</li>
+ *   <li>Чтение с различными вариантами фильтрации</li>
+ *   <li>Обновление с валидацией данных</li>
+ *   <li>Удаление с проверкой существования</li>
+ * </ul>
  */
 @Service
 @Transactional
@@ -31,6 +36,14 @@ public class TicketInfoService {
     private final AttractionRepository attractionRepository;
     private final TicketInfoMapper ticketInfoMapper;
 
+    /**
+     * Создает новую информацию о билетах.
+     *
+     * @param ticketInfoDto DTO с данными билетов
+     * @return DTO созданной информации
+     * @throws ResourceNotFoundException если достопримечательность не найдена
+     * @throws IllegalStateException если информация уже существует
+     */
     @Transactional
     public TicketInfoDto createTicketInfo(TicketInfoDto ticketInfoDto) {
         log.info("Creating ticket info for attraction: {}", ticketInfoDto.getAttractionId());
@@ -51,6 +64,13 @@ public class TicketInfoService {
         return ticketInfoMapper.toDto(savedTicket);
     }
 
+    /**
+     * Получает информацию о билетах по ID.
+     *
+     * @param id UUID информации о билетах
+     * @return DTO найденной информации
+     * @throws ResourceNotFoundException если информация не найдена
+     */
     @Transactional(readOnly = true)
     public TicketInfoDto getTicketInfoById(UUID id) {
         log.debug("Fetching ticket info with id: {}", id);
@@ -59,6 +79,12 @@ public class TicketInfoService {
                 .orElseThrow(() -> new ResourceNotFoundException("TicketInfo not found with id: " + id));
     }
 
+    /**
+     * Получает всю информацию о билетах с пагинацией.
+     *
+     * @param pageable параметры пагинации
+     * @return страница с DTO информации о билетах
+     */
     @Transactional(readOnly = true)
     public Page<TicketInfoDto> getAllTicketInfos(Pageable pageable) {
         log.info("Fetching all ticket infos with pagination");
@@ -66,6 +92,14 @@ public class TicketInfoService {
                 .map(ticketInfoMapper::toDto);
     }
 
+    /**
+     * Обновляет существующую информацию о билетах.
+     *
+     * @param id UUID обновляемой информации
+     * @param ticketInfoDto DTO с новыми данными
+     * @return DTO обновленной информации
+     * @throws ResourceNotFoundException если информация или достопримечательность не найдены
+     */
     @Transactional
     public TicketInfoDto updateTicketInfo(UUID id, TicketInfoDto ticketInfoDto) {
         log.info("Updating ticket info with id: {}", id);
@@ -85,6 +119,12 @@ public class TicketInfoService {
         return ticketInfoMapper.toDto(updatedTicket);
     }
 
+    /**
+     * Удаляет информацию о билетах по ID.
+     *
+     * @param id UUID удаляемой информации
+     * @throws ResourceNotFoundException если информация не найдена
+     */
     @Transactional
     public void deleteTicketInfo(UUID id) {
         log.info("Deleting ticket info with id: {}", id);
@@ -94,6 +134,14 @@ public class TicketInfoService {
         ticketInfoRepository.deleteById(id);
     }
 
+    /**
+     * Получает информацию о билетах для достопримечательности.
+     *
+     * @param attractionId UUID достопримечательности
+     * @param pageable параметры пагинации
+     * @return страница с DTO информации о билетах
+     * @throws ResourceNotFoundException если достопримечательность не найдена
+     */
     @Transactional(readOnly = true)
     public Page<TicketInfoDto> getByAttractionId(UUID attractionId, Pageable pageable) {
         log.info("Fetching ticket infos for attraction with id: {}", attractionId);
@@ -104,6 +152,13 @@ public class TicketInfoService {
                 .map(ticketInfoMapper::toDto);
     }
 
+    /**
+     * Получает информацию о билетах для конкретной достопримечательности.
+     *
+     * @param attractionId UUID достопримечательности
+     * @return DTO информации о билетах
+     * @throws ResourceNotFoundException если информация не найдена
+     */
     @Transactional(readOnly = true)
     public TicketInfoDto getByAttraction(UUID attractionId) {
         log.info("Fetching ticket info for attraction with id: {}", attractionId);

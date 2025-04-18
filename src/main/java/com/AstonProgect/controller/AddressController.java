@@ -31,9 +31,7 @@ import java.util.UUID;
  *   <li>Получение списка всех адресов</li>
  *   <li>Обновление адреса</li>
  *   <li>Удаление адреса</li>
- *   <li>Поиск адресов по городу</li>
- *   <li>Поиск адресов по региону</li>
- *   <li>Поиск адресов по улице</li>
+ *   <li>Поиск адресов по городу, региону или улице</li>
  * </ul>
  */
 @RestController
@@ -50,8 +48,8 @@ public class AddressController {
      * Принимает DTO с данными адреса, создает новую запись в системе
      * и возвращает созданный адрес в формате DTO.
      *
-     * @param addressDto DTO с данными для создания адреса
-     * @return DTO созданного адреса
+     * @param addressDto DTO с данными для создания адреса.
+     * @return ResponseEntity с DTO созданного адреса и HTTP-статусом 201.
      */
     @PostMapping
     @Operation(summary = "Создание адреса", description = "Создает новый адрес")
@@ -64,12 +62,10 @@ public class AddressController {
 
     /**
      * Получает адрес по идентификатору.
-     * <p>
-     * Ищет в системе адрес с указанным идентификатором.
      *
-     * @param id Идентификатор адреса
-     * @return DTO адреса
-     * @throws ResourceNotFoundException если адрес не найден
+     * @param id UUID адреса.
+     * @return ResponseEntity с DTO адреса и HTTP-статусом 200.
+     * @throws ResourceNotFoundException если адрес не найден.
      */
     @GetMapping("/{id}")
     @Operation(summary = "Получение адреса по ID", description = "Возвращает адрес с указанным ID")
@@ -80,11 +76,10 @@ public class AddressController {
     }
 
     /**
-     * Получает список всех адресов.
-     * <p>
-     * Возвращает полный список всех адресов в системе.
+     * Получает список всех адресов с пагинацией.
      *
-     * @return Список DTO адресов
+     * @param pageable Параметры пагинации (размер страницы, сортировка по городу).
+     * @return ResponseEntity со страницей DTO адресов и HTTP-статусом 200.
      */
     @GetMapping
     @Operation(summary = "Получение всех адресов", description = "Возвращает список всех адресов")
@@ -97,14 +92,11 @@ public class AddressController {
 
     /**
      * Обновляет существующий адрес.
-     * <p>
-     * Принимает DTO с обновленными данными и идентификатор адреса,
-     * обновляет соответствующую запись в системе.
      *
-     * @param id Идентификатор обновляемого адреса
-     * @param addressDto DTO с обновленными данными
-     * @return DTO обновленного адреса
-     * @throws ResourceNotFoundException если адрес не найден
+     * @param id UUID адреса.
+     * @param addressDto DTO с обновленными данными адреса.
+     * @return ResponseEntity с DTO обновленного адреса и HTTP-статусом 200.
+     * @throws ResourceNotFoundException если адрес не найден.
      */
     @PutMapping("/{id}")
     @Operation(summary = "Обновление адреса", description = "Обновляет адрес с указанным ID")
@@ -117,13 +109,11 @@ public class AddressController {
     }
 
     /**
-     * Удаляет адрес.
-     * <p>
-     * Удаляет запись адреса с указанным идентификатором из системы.
+     * Удаляет адрес по идентификатору.
      *
-     * @param id Идентификатор удаляемого адреса
-     * @return Пустой ответ с HTTP статусом 204 (No Content)
-     * @throws ResourceNotFoundException если адрес не найден
+     * @param id UUID адреса.
+     * @return ResponseEntity с HTTP-статусом 204 (No Content).
+     * @throws ResourceNotFoundException если адрес не найден.
      */
     @DeleteMapping("/{id}")
     @Operation(summary = "Удаление адреса", description = "Удаляет адрес с указанным ID")
@@ -134,8 +124,19 @@ public class AddressController {
         return ResponseEntity.noContent().build();
     }
 
+    /**
+     * Ищет адреса по заданным критериям (город, регион, улица).
+     * <p>
+     * Все параметры опциональны. Если параметры не указаны, возвращает все адреса.
+     *
+     * @param city Название города (опционально).
+     * @param region Название региона (опционально).
+     * @param street Название улицы (опционально).
+     * @param pageable Параметры пагинации.
+     * @return ResponseEntity со страницей DTO найденных адресов и HTTP-статусом 200.
+     */
     @GetMapping("/search")
-    @Operation(summary = "Поиск адресов по параметрам")
+    @Operation(summary = "Поиск адресов по параметрам", description = "Фильтрует адреса по городу, региону или улице")
     @ApiResponse(responseCode = "200", description = "Результаты поиска")
     public ResponseEntity<Page<AddressDto>> searchAddresses(
             @RequestParam(required = false) String city,

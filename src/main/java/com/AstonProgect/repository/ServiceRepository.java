@@ -15,7 +15,12 @@ import java.util.UUID;
 /**
  * Репозиторий для работы с сущностью {@link Service}.
  * <p>
- * Предоставляет стандартные CRUD операции JPA и дополнительные методы поиска услуг.
+ * Предоставляет:
+ * <ul>
+ *   <li>Стандартные операции JPA</li>
+ *   <li>Поиск по различным критериям</li>
+ *   <li>Фильтрацию по цене и доступности</li>
+ * </ul>
  */
 @Repository
 public interface ServiceRepository extends JpaRepository<Service, UUID> {
@@ -33,8 +38,13 @@ public interface ServiceRepository extends JpaRepository<Service, UUID> {
     Page<Service> findByPriceBetween(BigDecimal minPrice, BigDecimal maxPrice, Pageable pageable);
 
     /**
-     * Комплексный поиск услуг с фильтрацией по названию и типу.
-     * Поддерживает частичное совпадение названия без учета регистра.
+     * Выполняет комплексный поиск услуг.
+     * <p>
+     * Поддерживает:
+     * <ul>
+     *   <li>Частичный поиск по названию (регистронезависимый)</li>
+     *   <li>Фильтрацию по типу услуги</li>
+     * </ul>
      *
      * @param name часть названия услуги (может быть null)
      * @param type тип услуги (может быть null)

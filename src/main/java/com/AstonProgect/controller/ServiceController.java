@@ -42,6 +42,12 @@ public class ServiceController {
 
     private final ServiceService serviceService;
 
+    /**
+     * Создает новую услугу.
+     *
+     * @param serviceDto DTO с данными услуги.
+     * @return DTO созданной услуги с HTTP-статусом 201.
+     */
     @PostMapping
     @Operation(summary = "Создание услуги", description = "Создает новую услугу")
     @ApiResponse(responseCode = "201", description = "Услуга успешно создана")
@@ -51,6 +57,12 @@ public class ServiceController {
                 .body(serviceService.createService(serviceDto));
     }
 
+    /**
+     * Получает список всех услуг с пагинацией.
+     *
+     * @param pageable Параметры пагинации.
+     * @return Страница с DTO услуг.
+     */
     @GetMapping
     @Operation(summary = "Получение всех услуг", description = "Возвращает список всех услуг")
     @ApiResponse(responseCode = "200", description = "Список услуг успешно получен")
@@ -60,6 +72,13 @@ public class ServiceController {
         return ResponseEntity.ok(serviceService.getAllServices(pageable));
     }
 
+    /**
+     * Обновляет существующую услугу.
+     *
+     * @param id UUID услуги.
+     * @param serviceDto DTO с обновленными данными.
+     * @return DTO обновленной услуги.
+     */
     @PutMapping("/{id}")
     @Operation(summary = "Обновление услуги", description = "Обновляет услугу с указанным ID")
     @ApiResponse(responseCode = "200", description = "Услуга успешно обновлена")
@@ -70,6 +89,12 @@ public class ServiceController {
         return ResponseEntity.ok(serviceService.updateService(id, serviceDto));
     }
 
+    /**
+     * Удаляет услугу по идентификатору.
+     *
+     * @param id UUID услуги.
+     * @return HTTP-статус 204 (No Content).
+     */
     @DeleteMapping("/{id}")
     @Operation(summary = "Удаление услуги", description = "Удаляет услугу с указанным ID")
     @ApiResponse(responseCode = "204", description = "Услуга успешно удалена")
@@ -79,15 +104,29 @@ public class ServiceController {
         return ResponseEntity.noContent().build();
     }
 
+    /**
+     * Получает все возможные типы услуг.
+     *
+     * @return Массив значений перечисления {@link ServiceType}.
+     */
     @GetMapping("/types")
-    @Operation(summary = "Получение всех типов услуг")
+    @Operation(summary = "Получение всех типов услуг", description = "Возвращает список всех доступных типов услуг")
     @ApiResponse(responseCode = "200", description = "Список типов услуг")
     public ResponseEntity<ServiceType[]> getAllServiceTypes() {
         return ResponseEntity.ok(ServiceType.values());
     }
 
+    /**
+     * Ищет услуги по заданным критериям.
+     *
+     * @param type Тип услуги (опционально).
+     * @param name Название услуги (опционально).
+     * @param pageable Параметры пагинации.
+     * @return Страница с DTO найденных услуг.
+     */
     @GetMapping("/search")
-    @Operation(summary = "Поиск услуг по параметрам")
+    @Operation(summary = "Поиск услуг по параметрам", description = "Фильтрует услуги по типу или названию")
+    @ApiResponse(responseCode = "200", description = "Результаты поиска")
     public ResponseEntity<Page<ServiceDto>> searchServices(
             @RequestParam(required = false) ServiceType type,
             @RequestParam(required = false) String name,

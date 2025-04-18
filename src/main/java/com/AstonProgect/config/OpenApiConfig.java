@@ -1,6 +1,5 @@
 package com.AstonProgect.config;
 
-import io.swagger.v3.oas.models.Components;
 import io.swagger.v3.oas.models.OpenAPI;
 import io.swagger.v3.oas.models.info.Contact;
 import io.swagger.v3.oas.models.info.Info;
@@ -10,8 +9,11 @@ import org.springframework.context.annotation.Configuration;
 
 /**
  * Конфигурация для OpenAPI (Swagger).
+ * <p>
  * Настраивает документацию API, которая доступна по адресу:
- * http://localhost:8081/swagger-ui.html
+ * {@code http://localhost:8081/swagger-ui.html}.
+ * Документация включает описание API, контакты разработчиков и лицензию.
+ * </p>
  */
 @Configuration
 public class OpenApiConfig {
@@ -20,7 +22,7 @@ public class OpenApiConfig {
      * Создает и настраивает основной компонент OpenAPI с информацией о сервисе,
      * контактах разработчика, лицензией.
      *
-     * @return Сконфигурированный объект OpenAPI
+     * @return Сконфигурированный объект {@link OpenAPI} для генерации Swagger-документации.
      */
     @Bean
     public OpenAPI customOpenAPI() {

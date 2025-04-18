@@ -12,12 +12,15 @@ import java.util.stream.Collectors;
 /**
  * Перехватчик для логирования HTTP-запросов и ответов.
  * <p>
- * Данный компонент реализует интерфейс {@link HandlerInterceptor} для перехвата
- * HTTP-запросов и ответов с целью их логирования. Он регистрирует информацию о
- * методе запроса, URL, заголовках, статусе ответа и возможных исключениях.
+ * Реализует интерфейс {@link HandlerInterceptor} для перехвата и логирования:
+ * <ul>
+ *   <li>Входящих HTTP-запросов (метод, URL, заголовки)</li>
+ *   <li>Исходящих HTTP-ответов (статус код)</li>
+ *   <li>Исключений, возникших во время обработки запроса</li>
+ * </ul>
  * <p>
- * Перехватчик выполняет логирование в двух местах жизненного цикла запроса:
- * перед обработкой запроса и после завершения обработки запроса.
+ * Логирование выполняется с использованием SLF4J с уровнем INFO для успешных запросов
+ * и ERROR для исключений.
  */
 @Component
 public class LoggingInterceptor implements HandlerInterceptor {
@@ -25,15 +28,19 @@ public class LoggingInterceptor implements HandlerInterceptor {
     private static final Logger logger = LoggerFactory.getLogger(LoggingInterceptor.class);
 
     /**
-     * Метод, вызываемый перед обработкой запроса.
+     * Логирует информацию о входящем HTTP-запросе перед его обработкой.
      * <p>
-     * Регистрирует информацию о входящем HTTP-запросе, включая
-     * метод запроса, URL и заголовки.
+     * Записывает в лог:
+     * <ul>
+     *   <li>HTTP-метод (GET, POST и т.д.)</li>
+     *   <li>Полный URL запроса</li>
+     *   <li>Все заголовки запроса</li>
+     * </ul>
      *
-     * @param request текущий HTTP-запрос
-     * @param response текущий HTTP-ответ
-     * @param handler выбранный обработчик для обработки запроса
-     * @return true если процесс запроса должен продолжиться
+     * @param request HTTP-запрос
+     * @param response HTTP-ответ
+     * @param handler выбранный обработчик запроса
+     * @return всегда true (продолжить обработку запроса)
      */
     @Override
     public boolean preHandle(HttpServletRequest request, HttpServletResponse response, Object handler) {
@@ -46,15 +53,19 @@ public class LoggingInterceptor implements HandlerInterceptor {
     }
 
     /**
-     * Метод, вызываемый после завершения обработки запроса.
+     * Логирует информацию о завершении обработки запроса.
      * <p>
-     * Регистрирует информацию о завершении обработки HTTP-запроса,
-     * включая URL запроса, статус ответа и любые возникшие исключения.
+     * Записывает в лог:
+     * <ul>
+     *   <li>URL запроса</li>
+     *   <li>HTTP-статус ответа</li>
+     *   <li>Исключение (если возникло)</li>
+     * </ul>
      *
-     * @param request текущий HTTP-запрос
-     * @param response текущий HTTP-ответ
-     * @param handler обработчик, который использовался для обработки запроса
-     * @param ex исключение, возникшее во время обработки запроса, или null если исключений не было
+     * @param request HTTP-запрос
+     * @param response HTTP-ответ
+     * @param handler обработчик, использованный для запроса
+     * @param ex исключение (null если исключений не было)
      */
     @Override
     public void afterCompletion(HttpServletRequest request, HttpServletResponse response, Object handler, Exception ex) {

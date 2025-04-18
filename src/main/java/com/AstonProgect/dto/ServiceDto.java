@@ -9,6 +9,11 @@ import lombok.Data;
 import java.math.BigDecimal;
 import java.util.UUID;
 
+/**
+ * DTO для представления услуги.
+ * <p>
+ * Содержит информацию об услуге, включая название, описание, тип, цену и доступность.
+ */
 @Data
 public class ServiceDto {
     private UUID id;

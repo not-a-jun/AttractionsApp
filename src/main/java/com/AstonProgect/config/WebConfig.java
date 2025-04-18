@@ -15,16 +15,18 @@ import java.util.stream.Collectors;
 
 /**
  * Конфигурация веб-приложения, которая обеспечивает:
- * 1. Настройку CORS для разрешения кросс-доменных запросов
- * 2. Логирование всех входящих HTTP-запросов к API
+ * <ol>
+ *   <li>Настройку CORS для разрешения кросс-доменных запросов.</li>
+ *   <li>Логирование всех входящих HTTP-запросов к API.</li>
+ * </ol>
  */
 @Configuration
 public class WebConfig implements WebMvcConfigurer {
 
     /**
-     * Настройка CORS для разрешения запросов со всех источников
-     * 
-     * @param registry Реестр CORS-правил
+     * Настройка CORS для разрешения запросов со всех источников.
+     *
+     * @param registry Реестр CORS-правил, куда добавляются разрешённые методы, заголовки и origins.
      */
     @Override
     public void addCorsMappings(CorsRegistry registry) {
@@ -33,23 +35,37 @@ public class WebConfig implements WebMvcConfigurer {
                 .allowedMethods("GET", "POST", "PUT", "DELETE", "OPTIONS")
                 .allowedHeaders("*");
     }
-    
+
     /**
-     * Добавление интерцептора для логирования HTTP-запросов
-     * 
-     * @param registry Реестр интерцепторов
+     * Добавление интерцептора для логирования HTTP-запросов.
+     *
+     * @param registry Реестр интерцепторов, куда регистрируется {@link RequestLoggingInterceptor}.
      */
     @Override
     public void addInterceptors(InterceptorRegistry registry) {
         registry.addInterceptor(new RequestLoggingInterceptor());
     }
-    
+
     /**
-     * Интерцептор для логирования HTTP-запросов
+     * Внутренний интерцептор для логирования деталей HTTP-запросов и ответов.
+     * <p>
+     * Логирует:
+     * <ul>
+     *   <li>Входящие запросы (метод, URI, IP, заголовки).</li>
+     *   <li>Статусы ответов.</li>
+     * </ul>
      */
     private static class RequestLoggingInterceptor implements HandlerInterceptor {
         private static final Logger logger = LoggerFactory.getLogger(RequestLoggingInterceptor.class);
-        
+
+        /**
+         * Логирует детали входящего запроса перед его обработкой.
+         *
+         * @param request  HTTP-запрос.
+         * @param response HTTP-ответ.
+         * @param handler  Обработчик запроса.
+         * @return {@code true} для продолжения выполнения цепочки интерцепторов.
+         */
         @Override
         public boolean preHandle(HttpServletRequest request, HttpServletResponse response, Object handler) {
             String queryString = request.getQueryString() != null ? "?" + request.getQueryString() : "";
@@ -65,7 +81,15 @@ public class WebConfig implements WebMvcConfigurer {
             
             return true;
         }
-        
+
+        /**
+         * Логирует статус ответа после завершения обработки запроса.
+         *
+         * @param request HTTP-запрос.
+         * @param response HTTP-ответ.
+         * @param handler Обработчик запроса.
+         * @param ex Исключение, если возникло во время обработки.
+         */
         @Override
         public void afterCompletion(HttpServletRequest request, HttpServletResponse response, 
                 Object handler, Exception ex) {

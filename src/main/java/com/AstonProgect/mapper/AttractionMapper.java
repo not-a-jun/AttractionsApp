@@ -16,11 +16,14 @@ import java.util.stream.Collectors;
 import java.util.UUID;
 
 /**
- * Маппер для преобразования между сущностью Attraction и DTO AttractionDto.
+ * Маппер для преобразования между сущностью {@link Attraction} и DTO {@link AttractionDto}.
  * <p>
- * Этот класс обращается к репозиториям для загрузки связанных
- * сущностей (адреса, услуги, информации о билетах) при
- * преобразовании DTO в сущность.
+ * Обеспечивает:
+ * <ul>
+ *   <li>Преобразование с загрузкой связанных сущностей (адрес, услуги, билеты)</li>
+ *   <li>Обработку двунаправленных связей (например, TicketInfo ↔ Attraction)</li>
+ *   <li>Игнорирование null-значений при обновлении</li>
+ * </ul>
  */
 @Mapper(componentModel = "spring",
         uses = {ServiceMapper.class},
@@ -37,13 +40,11 @@ public abstract class AttractionMapper {
     protected TicketInfoRepository ticketInfoRepository;
 
     /**
-     * Преобразует DTO достопримечательности в сущность.
-     * <p>
-     * При преобразовании загружает связанные сущности (адрес, услуги, информацию о билетах)
-     * с использованием соответствующих репозиториев.
+     * Преобразует AttractionDto в Attraction с загрузкой зависимостей.
      *
-     * @param attractionDto DTO достопримечательности
-     * @return сущность достопримечательности
+     * @param attractionDto DTO для преобразования
+     * @return сущность Attraction
+     * @throws RuntimeException если связанные сущности не найдены
      */
     @Mapping(target = "address", source = "addressId", qualifiedByName = "mapAddress")
     @Mapping(target = "services", source = "serviceIds", qualifiedByName = "mapServices")
@@ -51,27 +52,31 @@ public abstract class AttractionMapper {
     public abstract Attraction toEntity(AttractionDto attractionDto);
 
     /**
-     * Преобразует сущность достопримечательности в DTO.
-     * <p>
-     * При преобразовании извлекает идентификаторы связанных сущностей
-     * (адреса, услуг, информации о билетах) для включения в DTO.
+     * Преобразует Attraction в AttractionDto с извлечением ID зависимостей.
      *
-     * @param attraction сущность достопримечательности
-     * @return DTO достопримечательности
+     * @param attraction сущность для преобразования
+     * @return DTO AttractionDto
      */
     @Mapping(target = "addressId", source = "address.id")
     @Mapping(target = "serviceIds", source = "services", qualifiedByName = "mapServiceIds")
     @Mapping(target = "ticketInfoId", source = "ticketInfo.id")
     public abstract AttractionDto toDto(Attraction attraction);
 
+    /**
+     * Обновляет сущность Attraction данными из DTO, игнорируя null-значения.
+     *
+     * @param dto DTO с новыми данными
+     * @param entity сущность для обновления
+     */
     @BeanMapping(nullValuePropertyMappingStrategy = NullValuePropertyMappingStrategy.IGNORE)
     public abstract void updateAttractionFromDto(AttractionDto dto, @MappingTarget Attraction entity);
+
     /**
-     * Загружает сущность адреса по идентификатору.
+     * Загружает Address по ID.
      *
-     * @param addressId идентификатор адреса
-     * @return сущность адреса
-     * @throws java.util.NoSuchElementException если адрес с таким ID не найден
+     * @param addressId ID адреса
+     * @return сущность Address
+     * @throws RuntimeException если адрес не найден
      */
     @Named("mapAddress")
     protected Address mapAddress(UUID addressId) {
@@ -81,11 +86,11 @@ public abstract class AttractionMapper {
     }
 
     /**
-     * Загружает список сущностей услуг по списку идентификаторов.
+     * Загружает Set<Service> по Set<UUID>.
      *
-     * @param serviceIds список идентификаторов услуг
-     * @return список сущностей услуг
-     * @throws java.util.NoSuchElementException если какая-либо услуга не найдена
+     * @param serviceIds набор ID услуг
+     * @return набор сущностей Service
+     * @throws RuntimeException если услуги не найдены
      */
     @Named("mapServices")
     protected Set<Service> mapServices(Set<UUID> serviceIds) {
@@ -96,6 +101,13 @@ public abstract class AttractionMapper {
                 .collect(Collectors.toSet());
     }
 
+    /**
+     * Загружает TicketInfo по ID.
+     *
+     * @param ticketInfoId ID информации о билетах
+     * @return сущность TicketInfo
+     * @throws RuntimeException если информация не найдена
+     */
     @Named("mapTicketInfo")
     protected TicketInfo mapTicketInfo(UUID ticketInfoId) {
         if (ticketInfoId == null) return null;
@@ -103,6 +115,12 @@ public abstract class AttractionMapper {
                 .orElseThrow(() -> new RuntimeException("TicketInfo not found with id: " + ticketInfoId));
     }
 
+    /**
+     * Преобразует Set<Service> в Set<UUID>.
+     *
+     * @param services набор сущностей Service
+     * @return набор ID услуг
+     */
     @Named("mapServiceIds")
     protected Set<UUID> mapServiceIds(Set<Service> services) {
         if (services == null) return null;
@@ -111,6 +129,12 @@ public abstract class AttractionMapper {
                 .collect(Collectors.toSet());
     }
 
+    /**
+     * Устанавливает обратную ссылку после маппинга.
+     *
+     * @param dto исходный DTO
+     * @param attraction целевая сущность
+     */
     @AfterMapping
     protected void afterMapping(AttractionDto dto, @MappingTarget Attraction attraction) {
         // Устанавливаем обратную связь для ticketInfo

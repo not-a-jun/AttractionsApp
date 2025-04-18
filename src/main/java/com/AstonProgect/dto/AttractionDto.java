@@ -8,6 +8,12 @@ import lombok.Data;
 import java.util.Set;
 import java.util.UUID;
 
+/**
+ * DTO для представления достопримечательности.
+ * <p>
+ * Содержит основную информацию о достопримечательности, включая название, описание, тип,
+ * а также связанные сущности (адрес, услуги, билеты).
+ */
 @Data
 public class AttractionDto {
     private UUID id;
